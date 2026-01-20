@@ -1,0 +1,33 @@
+name: Email Zeitgeist Daily Output
+
+on:
+  schedule:
+    - cron: "5 13 * * *"   # runs daily ~8am ET
+  workflow_dispatch:
+
+jobs:
+  run-and-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: |
+          pip install -r requirements.txt || true
+          python zeitgeist.py > daily_output.txt
+
+      - uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          subject: "Zeitgeist Daily Output"
+          body: "Attached is today's report."
+          attachments: daily_output.txt
+          secure: true
