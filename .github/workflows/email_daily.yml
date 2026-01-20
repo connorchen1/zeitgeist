@@ -16,8 +16,8 @@ jobs:
           python-version: "3.11"
 
       - run: |
-          pip install -r requirements.txt || true
-          python zeitgeist.py > daily_output.txt
+        pip install polars requests
+        python zeitgeist.py > daily_output.txt
 
       - uses: dawidd6/action-send-mail@v3
         with:
