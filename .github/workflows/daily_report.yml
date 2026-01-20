@@ -31,6 +31,22 @@ jobs:
       - name: Generate report
         run: uv run python zeitgeist.py
 
+      - name: Email report
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          subject: "Zeitgeist Daily Report"
+          body: |
+            Today's Zeitgeist report is attached.
+          attachments: |
+            .reports/*
+          secure: true
+
       - name: Publish report
         uses: peaceiris/actions-gh-pages@v4
         with:
