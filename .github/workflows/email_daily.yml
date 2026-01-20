@@ -2,24 +2,29 @@ name: Email Zeitgeist Daily Output
 
 on:
   schedule:
-    - cron: "5 13 * * *"   # runs daily ~8am ET
+    - cron: "5 13 * * *"   # ~8:05am ET
   workflow_dispatch:
 
 jobs:
   run-and-email:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version-file: ".python-version"
 
-      - run: |
-          pip install polars requests pydantic
-          python zeitgeist.py > daily_output.txt
+      - name: Generate report
+        run: uv run python zeitgeist.py
 
-      - uses: dawidd6/action-send-mail@v3
+      - name: Email report
+        uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
           server_port: ${{ secrets.SMTP_PORT }}
@@ -28,6 +33,6 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           subject: "Zeitgeist Daily Output"
-          body: "Attached is today's report."
-          attachments: daily_output.txt
+          body: "Today's Zeitgeist report is attached."
+          attachments: .reports/*
           secure: true
