@@ -1,4 +1,4 @@
-name: Email Zeitgeist Daily Output (No Model, Debug)
+name: Email Zeitgeist Daily Memo (No Model, Final)
 
 on:
   schedule:
@@ -10,35 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch latest report (debug)
+      - name: Fetch latest report
         run: |
-          echo "Runner UTC time:"
-          date -u
-          echo "----------------"
-
           FOUND=0
           for i in 0 1 2 3; do
             DATE=$(date -u -d "-$i day" +"%Y/%m/%d")
             URL="https://pathikrit.github.io/zeitgeist/$DATE/"
-            echo "Trying URL: $URL"
-
+            echo "Trying $URL"
             if curl -sf "$URL" > report.html; then
-              echo "SUCCESS fetching $URL"
+              echo "Fetched $URL"
               FOUND=1
               break
-            else
-              echo "Not found"
             fi
           done
 
           if [ "$FOUND" -ne 1 ]; then
-            echo "ERROR: No report found in lookback window"
+            echo "No report found"
             exit 1
           fi
-
-          echo "----------------"
-          echo "First 30 lines of report.html:"
-          head -30 report.html
 
       - name: Convert HTML to text
         run: |
@@ -46,9 +35,13 @@ jobs:
           sudo apt-get install -y lynx
           lynx -dump -nolist report.html > report.txt
 
-          echo "----------------"
-          echo "First 40 lines of report.txt:"
-          head -40 report.txt
+      - name: Load report into email body
+        run: |
+          {
+            echo "EMAIL_BODY<<EOF"
+            cat report.txt
+            echo "EOF"
+          } >> "$GITHUB_ENV"
 
       - name: Email report
         uses: dawidd6/action-send-mail@v3
@@ -60,6 +53,5 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           subject: "Zeitgeist Daily Memo"
-          body: |
-            $(cat report.txt)
+          body: ${{ env.EMAIL_BODY }}
           secure: true
