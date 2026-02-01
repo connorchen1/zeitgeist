@@ -1,4 +1,4 @@
-name: Email Zeitgeist Daily Output (No Model)
+name: Email Zeitgeist Daily Output (No Model, Debug)
 
 on:
   schedule:
@@ -10,22 +10,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch latest report
+      - name: Fetch latest report (debug)
         run: |
+          echo "Runner UTC time:"
+          date -u
+          echo "----------------"
+
+          FOUND=0
           for i in 0 1 2 3; do
             DATE=$(date -u -d "-$i day" +"%Y/%m/%d")
             URL="https://pathikrit.github.io/zeitgeist/$DATE/"
+            echo "Trying URL: $URL"
+
             if curl -sf "$URL" > report.html; then
-              echo "Fetched $URL"
+              echo "SUCCESS fetching $URL"
+              FOUND=1
               break
+            else
+              echo "Not found"
             fi
           done
-          
-      - name: Extract text
+
+          if [ "$FOUND" -ne 1 ]; then
+            echo "ERROR: No report found in lookback window"
+            exit 1
+          fi
+
+          echo "----------------"
+          echo "First 30 lines of report.html:"
+          head -30 report.html
+
+      - name: Convert HTML to text
         run: |
           sudo apt-get update
           sudo apt-get install -y lynx
           lynx -dump -nolist report.html > report.txt
+
+          echo "----------------"
+          echo "First 40 lines of report.txt:"
+          head -40 report.txt
 
       - name: Email report
         uses: dawidd6/action-send-mail@v3
