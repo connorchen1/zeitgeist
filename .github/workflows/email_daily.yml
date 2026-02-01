@@ -10,11 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch today's report
+      - name: Fetch latest report
         run: |
-          DATE=$(date -u +"%Y/%m/%d")
-          curl -L "https://pathikrit.github.io/zeitgeist/$DATE/" > report.html
-
+          for i in 0 1 2 3; do
+            DATE=$(date -u -d "-$i day" +"%Y/%m/%d")
+            URL="https://pathikrit.github.io/zeitgeist/$DATE/"
+            if curl -sf "$URL" > report.html; then
+              echo "Fetched $URL"
+              break
+            fi
+          done
+          
       - name: Extract text
         run: |
           sudo apt-get update
