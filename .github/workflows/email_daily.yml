@@ -1,4 +1,4 @@
-name: Email Zeitgeist Daily Output
+name: Email Zeitgeist Daily Output (No Model)
 
 on:
   schedule:
@@ -6,24 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-and-email:
+  fetch-and-email:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
-
-      - name: Generate report
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: uv run python zeitgeist.py
+      - name: Fetch latest report
+        run: |
+          curl -L https://pathikrit.github.io/zeitgeist/ > report.html
 
       - name: Email report
         uses: dawidd6/action-send-mail@v3
@@ -34,7 +23,8 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
-          subject: "Zeitgeist Daily Output"
-          body: "Today's Zeitgeist report is attached."
-          attachments: .reports/*
+          subject: "Zeitgeist Daily Report"
+          body: |
+            Attached is today's Zeitgeist report.
+          attachments: report.html
           secure: true
