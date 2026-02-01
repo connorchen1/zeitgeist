@@ -1,4 +1,4 @@
-name: Email Zeitgeist Daily Memo (No Model, Final)
+name: Email Zeitgeist Daily Memo (No Model, PDF + Body)
 
 on:
   schedule:
@@ -35,6 +35,11 @@ jobs:
           sudo apt-get install -y lynx
           lynx -dump -nolist report.html > report.txt
 
+      - name: Convert HTML to PDF
+        run: |
+          sudo apt-get install -y wkhtmltopdf
+          wkhtmltopdf report.html zeitgeist_daily_memo.pdf
+
       - name: Load report into email body
         run: |
           {
@@ -50,8 +55,9 @@ jobs:
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          to: ${{ secrets.EMAIL_TO }}
+          to: connorchen8@gmail.com
           from: ${{ secrets.EMAIL_FROM }}
           subject: "Zeitgeist Daily Memo"
           body: ${{ env.EMAIL_BODY }}
+          attachments: zeitgeist_daily_memo.pdf
           secure: true
