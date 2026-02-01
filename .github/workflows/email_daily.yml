@@ -60,5 +60,6 @@ jobs:
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
           subject: "Zeitgeist Daily Memo"
-          body_file: report.txt
+          body: |
+            $(cat report.txt)
           secure: true
