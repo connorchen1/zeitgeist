@@ -10,9 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Fetch latest report
+      - name: Fetch today's report
         run: |
-          curl -L https://pathikrit.github.io/zeitgeist/ > report.html
+          DATE=$(date -u +"%Y/%m/%d")
+          curl -L "https://pathikrit.github.io/zeitgeist/$DATE/" > report.html
+
+      - name: Extract text
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lynx
+          lynx -dump -nolist report.html > report.txt
 
       - name: Email report
         uses: dawidd6/action-send-mail@v3
@@ -23,8 +30,6 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           to: ${{ secrets.EMAIL_TO }}
           from: ${{ secrets.EMAIL_FROM }}
-          subject: "Zeitgeist Daily Report"
-          body: |
-            Attached is today's Zeitgeist report.
-          attachments: report.html
+          subject: "Zeitgeist Daily Memo"
+          body_file: report.txt
           secure: true
