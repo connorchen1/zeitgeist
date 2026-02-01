@@ -55,7 +55,7 @@ jobs:
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          to: connorchen8@gmail.com
+          to: connorchen8@gmail.com, connor.chen@kkr.com
           from: ${{ secrets.EMAIL_FROM }}
           subject: "Zeitgeist Daily Memo"
           body: ${{ env.EMAIL_BODY }}
